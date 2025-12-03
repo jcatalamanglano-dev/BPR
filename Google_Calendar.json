@@ -1,0 +1,304 @@
+{
+  "name": "Google_Calendar",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=# Role\nYou are an assistant that receives user input: {{ $json.query }}.\nYour job is to understand the request and manage Google Calendar events accurately.\n\n# Tools\n- Create_Meetings: Create a new calendar event with title, time, participants.\n- Update_Meetings: Update a calendar event.\n- Delete_Meetings: Delete a calendar event (ask for confirmation first).\n- Event_Retrieval: Get and retrieve events by title, date, or time range.\n- Calendar_TimeSlots: Check availability and suggest open time slots.\n\n# Instructions\n1. **Intent detection**: Identify if the user wants to create, search, update, delete, or check availability.\n2. **Date & Time Safety**:\n   - Use NOW: {{ $json.now || $now }} as the reference timestamp.\n   - Default timezone: {{ $json.timezone || \"Europe/Copenhagen\" }}.\n   - If a parsed date is in the past, roll it forward to the next valid future date and ask for confirmation.\n3. **Information extraction**:\n   - Always get: title, start date/time, end date/time, attendees, description.\n4. **Use cases**:\n   - Create → Call `Create_Meetings`.\n- Update → Before calling `Update_Meetings`, resolve all relative dates (e.g., \"tomorrow\", \"next Friday\") into exact ISO 8601 timestamps in the user's timezone.\n\n   - Delete → Confirm first, then call `Delete_Meetings`.\n   - Get Events → Use `Event_Retrieval`for event retrieval, ask for the date range, time period or Name they want to query.list matching events.\n   - Availability → Use `Calendar_TimeSlots` to check free times.\n5. **Confirm actions**:\n   - Summarize action clearly: “Created ‘X’ on [date/time TZ] with attendees [names].”\n   - Always confirm destructive actions like delete.\n6. **Fallback**: If details (time, event name, etc.) are unclear, ask a short clarifying question before calling a tool.\n\n   ",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        300
+      ],
+      "id": "0380df65-788b-4ad6-9e00-ff51cd1da8ac",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1060,
+        520
+      ],
+      "id": "bd89ec20-fcd2-4cee-9694-a09b458cabe9",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "dmq4VVpBu4CmtU1l",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "jcatalamanglano@gmail.com",
+          "mode": "list",
+          "cachedResultName": "jcatalamanglano@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1720,
+        480
+      ],
+      "id": "a41fce1d-e437-4979-84e5-6fbafebbc2b7",
+      "name": "Create_Meetings",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "DnjVwaoona0nhTlq",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "calendar": {
+          "__rl": true,
+          "mode": "id",
+          "value": "jcatalamanglano@gmail.com",
+          "__regex": "(^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*)"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "updateFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1500,
+        620
+      ],
+      "id": "c7f30aea-cd23-4502-b3ab-f95f224cf28a",
+      "name": "Update_Meetings",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "DnjVwaoona0nhTlq",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "calendar": {
+          "__rl": true,
+          "value": "jcatalamanglano@gmail.com",
+          "mode": "list",
+          "cachedResultName": "jcatalamanglano@gmail.com"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1760,
+        700
+      ],
+      "id": "22968c1c-f3a2-4d2e-b074-8601501dc7ed",
+      "name": "Delete_Meetings",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "DnjVwaoona0nhTlq",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "calendar",
+        "calendar": {
+          "__rl": true,
+          "value": "jcatalamanglano@gmail.com",
+          "mode": "list",
+          "cachedResultName": "jcatalamanglano@gmail.com"
+        },
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start_Time', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End_Time', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1720,
+        580
+      ],
+      "id": "ee4f873b-39b7-4795-a577-b6a861d18269",
+      "name": "Calendar_TimesLots",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "DnjVwaoona0nhTlq",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        680,
+        420
+      ],
+      "id": "8899d65d-1403-42b3-a05b-345cddc5ae05",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use this tool when you’re asked to retrieve events data.",
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "jcatalamanglano@gmail.com",
+          "mode": "list",
+          "cachedResultName": "jcatalamanglano@gmail.com"
+        },
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('After', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Before', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1240,
+        680
+      ],
+      "id": "64eae8d4-5aff-4b93-8c6a-dc35895c00d5",
+      "name": "Event_Retrieval",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "DnjVwaoona0nhTlq",
+          "name": "Google Calendar account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "query": "Create a meeting with Jobs on 2025-10-08 at 17:00."
+        }
+      }
+    ]
+  },
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    },
+    "Create_Meetings": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update_Meetings": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete_Meetings": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calendar_TimesLots": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Event_Retrieval": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Copenhagen",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "73e331c6-0257-4580-ba1b-3c3c92f249a3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9ab3ed433c7d391ae73ed457b6cd1bad66ec5f00c3f8ec84595b45ccc6d2fdf8"
+  },
+  "id": "rnRpXa1noskWesNO",
+  "tags": []
+}

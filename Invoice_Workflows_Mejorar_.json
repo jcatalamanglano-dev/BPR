@@ -1,0 +1,291 @@
+{
+  "name": "Invoice_Workflows(Mejorar)",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "c4ba837d-acce-42f6-9816-678f9716a769",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        640,
+        200
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "dmq4VVpBu4CmtU1l",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=## Task\nUsing the input provided in \"{{ $json.text }}\", extract the following fields and return them as **separate outputs** (one per line).  \n\nFields to extract:  \n- Invoice Number  \n- Date  \n- Client Name  \n- Email  \n- Total Amount  \n- Payment Terms  \n- Line Items (if available)  \n\n### Output format:\nEach field must be returned on a **new line** like this:\n\nInvoice Number: 100  \nDate: 2025-03-10  \nClient Name: Enrique  \nEmail: example@email.com  \nTotal Amount: 100.00 DKK  \nPayment Terms: 15 days  \nLine Item: Consultation - Qty: 1, Unit Price: 100.00, Amount: 100.00  \nQuality percentage of data taken: 90%\n### Rules:\n1. Do not return JSON.  \n2. Do not group results together.  \n3. Each field must be in its own line with the format `Field: Value`.  \n4. If a field is missing, still include it with an empty value.  \n5. Return a percentage for the quality of data taken ",
+        "options": {
+          "systemMessage": "=# System Role\nYou are an efficient invoice assistant that extracts key information from invoices and generates concise user responses.\n\n# Task Specification\nThank the user for submitting an invoice. Extract the total amount, due date, and a summary of the notes from the invoice. Inform the user that the original invoice has been added to the Google Drive, include the file name, and provide the link to the invoice database.\n\n# Specifics and Context\nStart off by thanking the user for submitting an invoice. Respond clearly and concisely to help users quickly understand their invoice details and access the database if needed.\n\n# Example\n## Input\n[Invoice Information]  \nInvoice Number: INV-12345  \nDate: 2024-12-01  \nTotal Amount: 950.00  \nBilling Address: 123 Business Lane  \nDue Date: 2024-12-15  \nNotes:  \n- Please make payment within the due date to avoid late fees.  \n- For questions about this invoice, contact billing@business.com or call (123) 456-7890.  \n- Payment methods accepted: Bank transfer, credit card, or PayPal.  \n- Late payments are subject to a 5% penalty fee  \n\n[File Name]  \nInvoice [December-05-2024]  \n\n[Link to the Invoice Database]  \nhttps://docs.google.com/spreadsheets/d/15FOh41iwvy7zv-k4foZc8ubMkMLz_BiBPXJTZ-IziM/edit?usp=sharing  \n\n## Output\nThanks for submitting!\n\nThe total amount of the invoice is **$950.00**, and the due date is **2024-12-15**.  \n\n**Notes:**  \n- Please make payment on time to avoid late fees.  \n- Contact billing@business.com or call (123) 456-7890 for any questions.  \n- Accepted payment methods: Bank transfer, credit card, and PayPal.  \n\nThe original invoice has been added to Google Drive with the file name **\"Invoice [December-05-2024]\"**.  \n\nYou can access the invoice database [here](https://docs.google.com/spreadsheets/d/15FOh41iwvy7zv-k4foZc8ubMkMLz_BiBPXJTZ-IziM/edit?usp=sharing).\n"
+        }
+      },
+      "id": "1dae335d-5f19-4af8-97d9-d1609d1e6b60",
+      "name": "Invoice Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        660,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "formTitle": "Invoice",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Invoice",
+              "fieldType": "file",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        300,
+        0
+      ],
+      "id": "57be473d-858c-4051-8023-2ad2d61385e8",
+      "name": "On form submission",
+      "webhookId": "a6dcbc26-c22d-44ec-95af-58a9d3f4465e"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "=Invoice",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        500,
+        0
+      ],
+      "id": "327da939-4f67-41c0-9210-5a9b395971a4",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=\n# Role\nYou are an assistant that receives structured client information  {{ $json.output }}) and must write it into Google Sheets.  \n\n# Instructions\n- Always use the tool AppendInfo.  \n\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        0
+      ],
+      "id": "b7dbafe7-6e65-4f5c-b30a-b4e49dde22a4",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1000,
+        200
+      ],
+      "id": "7e50411c-5a52-4673-b8c7-b365cc2818df",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "dmq4VVpBu4CmtU1l",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1OGqQQjG3rYSj-y6M1dBwSJx2mOLSditsb_Ws3VjJPP4",
+          "mode": "list",
+          "cachedResultName": "Invoices",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OGqQQjG3rYSj-y6M1dBwSJx2mOLSditsb_Ws3VjJPP4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Invoice",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OGqQQjG3rYSj-y6M1dBwSJx2mOLSditsb_Ws3VjJPP4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Name', ``, 'string') }}",
+            "Total Amount": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Total_Amount', ``, 'string') }}",
+            "Payment Terms": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Payment_Terms', ``, 'string') }}",
+            "Invoice Number": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Invoice_Number__using_to_match_', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "Invoice Number"
+          ],
+          "schema": [
+            {
+              "id": "Invoice Number",
+              "displayName": "Invoice Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Total Amount",
+              "displayName": "Total Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Payment Terms",
+              "displayName": "Payment Terms",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.6,
+      "position": [
+        1200,
+        200
+      ],
+      "id": "1cb68d49-5cb7-4c84-acd4-ebdca4f6a7ee",
+      "name": "AppendInfo",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "N06nTSiimKMNE7NI",
+          "name": "Google Sheets account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Invoice Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invoice Agent": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Invoice Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    },
+    "AppendInfo": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "6f307d33-5f83-4929-b865-2f74cf220621",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9ab3ed433c7d391ae73ed457b6cd1bad66ec5f00c3f8ec84595b45ccc6d2fdf8"
+  },
+  "id": "R5q6LvG0yTLAkOg8",
+  "tags": []
+}

@@ -1,0 +1,512 @@
+{
+  "name": "Google_Driver_Files",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=# Role\nYou are an assistant that receives user input:{{ $json.query }}.  \nYour job is to detect the user’s intent and call the correct Google Drive tool with the required parameters.  \n\n# Tools\n- Search_Drive: Search for a file or folder by keyword.  \n- Upload_File: Upload a file to a folder.  \n- Download_File: Download a file.  \n- Copy_File: Copy a file to another folder.  \n- Move_File: Move a file to another folder.  \n- Delete_File: Delete a file (ask for confirmation first).  \n- Update_File: Update an existing file’s metadata or content (requires fileId and update details).  \n- Create_Folder: Create a folder in Google Drive.  \n- Delete_Folder: Delete a folder (ask for confirmation first). \n- Required_rename: Special renaming tool. Renames a file according to the required naming convention. The naming convention is:\n<FiscalPeriod>_<Year>_<ID>_<ClientName>\nExample: Q2_2025_&7890O_MateoPizza\n\n# Instructions\n1. Identify the user’s intent: search | upload | download | copy | move | delete | update | create folder | delete folder.  \n2. Always clarify whether the target is a **file or folder**.  \n3. Call the correct tool with all required parameters (IDs, names, details).  \n4. If multiple matches are found or details are missing, ask for clarification.  \n5. Always confirm before performing destructive actions (delete/move).  \n6. Respond concisely with a confirmation of what action was performed and include IDs or links if relevant.\n7. For Required_rename: If the user says “update this file into the required naming convention,” ask for:Fiscal Period (e.g., Q1, Q2, H1, FY2025) Year (e.g., 2025) Client ID (e.g., &7890O) Client Name (e.g., MateoPizza) Once all info is provided, rename the file with the format: <FiscalPeriod>_<Year>_<ID>_<ClientName>.\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "id": "c14d0d9f-e50f-4e7f-8488-a4618402366d",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        100,
+        220
+      ],
+      "id": "36b7d6ef-c319-4417-8b7b-12c456d17e78",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "dmq4VVpBu4CmtU1l",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search_Query', ``, 'string') }}",
+        "filter": {
+          "driveId": {
+            "mode": "list",
+            "value": "My Drive"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTool",
+      "typeVersion": 3,
+      "position": [
+        680,
+        280
+      ],
+      "id": "5e3aa7da-7cd7-4486-a152-2f66ca1cd229",
+      "name": "Search_Drive",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "DgEL9oxAM6BRHGXu",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputDataFieldName": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Input_Data_Field_Name', ``, 'string') }}",
+        "name": "={{ $fromAI('Input_Data_Field_Name', ``, 'string') }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Parent_Folder', ``, 'string') }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTool",
+      "typeVersion": 3,
+      "position": [
+        700,
+        440
+      ],
+      "id": "474db22b-3ce9-4c2d-99b3-2ade08e1563e",
+      "name": "Upload_File",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "DgEL9oxAM6BRHGXu",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "deleteFile",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('File', ``, 'string') }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTool",
+      "typeVersion": 3,
+      "position": [
+        440,
+        440
+      ],
+      "id": "016ca998-6caa-4244-ad51-35207d86693b",
+      "name": "Delete_File",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "DgEL9oxAM6BRHGXu",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('File', ``, 'string') }}",
+          "mode": "id"
+        },
+        "name": "={{ $fromAI('File', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTool",
+      "typeVersion": 3,
+      "position": [
+        780,
+        280
+      ],
+      "id": "7cb3e983-3c90-48b5-9f65-14300e66f333",
+      "name": "Copy_File",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "DgEL9oxAM6BRHGXu",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('File', ``, 'string') }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTool",
+      "typeVersion": 3,
+      "position": [
+        560,
+        280
+      ],
+      "id": "639f5028-95c1-4807-84f8-20e0587c22ef",
+      "name": "Download_File",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "DgEL9oxAM6BRHGXu",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "move",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('File', ``, 'string') }}",
+          "mode": "id"
+        },
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Parent_Folder', ``, 'string') }}",
+          "mode": "id"
+        }
+      },
+      "type": "n8n-nodes-base.googleDriveTool",
+      "typeVersion": 3,
+      "position": [
+        440,
+        280
+      ],
+      "id": "d80a83f5-b912-4b49-aaa9-1962f79ac536",
+      "name": "Move_File",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "DgEL9oxAM6BRHGXu",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('File_to_Update', ``, 'string') }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTool",
+      "typeVersion": 3,
+      "position": [
+        580,
+        440
+      ],
+      "id": "4b8a300c-c292-4ebd-82d3-febb80904f44",
+      "name": "Update_File",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "DgEL9oxAM6BRHGXu",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Parent_Folder', ``, 'string') }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTool",
+      "typeVersion": 3,
+      "position": [
+        940,
+        440
+      ],
+      "id": "4f9881d3-6877-45c4-975a-fde336223b66",
+      "name": "Create_Folder",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "DgEL9oxAM6BRHGXu",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "operation": "deleteFolder",
+        "folderNoRootId": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Folder', ``, 'string') }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTool",
+      "typeVersion": 3,
+      "position": [
+        820,
+        440
+      ],
+      "id": "5427994d-6465-462a-8bf5-5fea059256ed",
+      "name": "Delete_Folder",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "DgEL9oxAM6BRHGXu",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "38b50d24-a084-4957-a74d-3efbf5f5b560",
+      "name": "When chat message received",
+      "webhookId": "73ab4257-2655-42a0-a30c-36f442373f1e"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "# Purpose\nUpdate file in Google DrivePurpose: Enforce the firm’s naming convention for a single file by renaming it to <FiscalPeriod>_<Year>_<ID>_<ClientName>.\n\n# Inputs (required):\n\n- fileId (string): Google Drive file ID to rename.\n\n- fiscalPeriod (string): e.g., Q1, Q2, Q3, Q4, H1, H2, FY.\n\n- year (string, YYYY): four-digit year, e.g., 2025.\n\n- clientId (string): business identifier, e.g., &7890O.\n\n- clientName (string): e.g., MateoPizza (spaces allowed; system should normalize to underscores if needed).\n\n\n# Output (success):\n\n- oldName (string)\n- newName (string)\n- fileId (string)\n- webViewLink (string)\n\n# Failure cases & messages:\n\nMissing required inputs → prompt user for the missing fields.\nInvalid year or fiscalPeriod → ask user to correct.\nFile not found / permission error → return a clear error and next steps.\n\nExample call (schema):\n\n{\n  \"tool\": \"Required_rename\",\n  \"args\": {\n    \"fileId\": \"1AbCDeFgHiJKLmnopQRsT\",\n    \"fiscalPeriod\": \"Q2\",\n    \"year\": \"2025\",\n    \"clientId\": \"&7890O\",\n    \"clientName\": \"MateoPizza\"\n  }\n}\n\n\nExample result message (to user):\nRenamed file 1AbCDeFgHiJKLmnopQRsT from \"invoice.pdf\" to \"Q2_2025_&7890O_MateoPizza.pdf\". ",
+        "operation": "update",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('File_to_Update', ``, 'string') }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTool",
+      "typeVersion": 3,
+      "position": [
+        920,
+        280
+      ],
+      "id": "9e358ec3-33df-4e36-9032-ff3c798564e3",
+      "name": "Requiered_rename",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "DgEL9oxAM6BRHGXu",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -80,
+        100
+      ],
+      "id": "5c8898d2-2ec1-46c5-945a-07e5f863c6b6",
+      "name": "When Executed by Another Workflow"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "query": "search for file named BOE 151"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search_Drive": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload_File": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete_File": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Copy_File": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download_File": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Move_File": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update_File": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create_Folder": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete_Folder": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Requiered_rename": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f05b9c42-fcb9-42cf-a47b-7a1dc7d8fa68",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9ab3ed433c7d391ae73ed457b6cd1bad66ec5f00c3f8ec84595b45ccc6d2fdf8"
+  },
+  "id": "zUiviW6zPyJpoEBy",
+  "tags": []
+}
